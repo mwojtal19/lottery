@@ -38,15 +38,15 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
     event WinnerPicked(address indexed winner);
 
     constructor(
-        address vrdCoordinatorV2,
+        address vrfCoordinatorV2,
         uint256 entranceFee,
         bytes32 gasLane,
         uint64 subscriptionId,
         uint32 callbackGasLimit,
         uint256 interval
-    ) VRFConsumerBaseV2(vrdCoordinatorV2) {
+    ) VRFConsumerBaseV2(vrfCoordinatorV2) {
         i_entranceFee = entranceFee;
-        i_vrfCoordinator = VRFCoordinatorV2Interface(vrdCoordinatorV2);
+        i_vrfCoordinator = VRFCoordinatorV2Interface(vrfCoordinatorV2);
         i_gasLane = gasLane;
         i_subscriptionId = subscriptionId;
         i_callbackGasLimit = callbackGasLimit;
@@ -134,19 +134,31 @@ contract Raffle is VRFConsumerBaseV2, AutomationCompatibleInterface {
         return s_raffleState;
     }
 
-    function getNumWords() public pure returns (uint256) {
-        return NUM_WORDS;
-    }
-
     function getNumberOfPlayers() public view returns (uint256) {
         return s_players.length;
+    }
+
+    function getInterval() public view returns (uint256) {
+        return i_interval;
+    }
+
+    function getGasLane() public view returns (bytes32) {
+        return i_gasLane;
+    }
+
+    function getSubscriptionId() public view returns (uint256) {
+        return i_subscriptionId;
+    }
+
+    function getCallbackGasLimit() public view returns (uint32) {
+        return i_callbackGasLimit;
     }
 
     function getLatestTimestamp() public view returns (uint256) {
         return s_lastTimestamp;
     }
 
-    function getRequestConfirmations() public pure returns (uint256) {
-        return REQUEST_CONFIRMATIONS;
+    function getVRFCoordinatorV2Address() public view returns (address) {
+        return address(i_vrfCoordinator);
     }
 }

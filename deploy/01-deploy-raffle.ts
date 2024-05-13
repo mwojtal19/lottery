@@ -3,7 +3,6 @@ import { ethers } from "hardhat";
 import { DeployFunction } from "hardhat-deploy/dist/types";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { developmentChains, networkConfig } from "../helper-hardhat-config";
-import { VRFCoordinatorV2Mock } from "../typechain-types";
 import verify from "../utils/verify";
 
 const VRF_SUB_FUND_AMOUNT = parseEther("2");
@@ -22,16 +21,19 @@ const deployRaffle: DeployFunction = async function (
             "VRFCoordinatorV2Mock"
         );
         vrfCoordinatorV2Address = vrfCoordinatorV2Mock.address;
-        const contract = (await ethers.getContractAt(
-            vrfCoordinatorV2Mock.abi,
+        const vrfCoordinatorV2 = await ethers.getContractAt(
+            "VRFCoordinatorV2Mock",
             vrfCoordinatorV2Mock.address,
             deployer
-        )) as unknown as VRFCoordinatorV2Mock;
-        const txResponse = await contract.createSubscription();
+        );
+        const txResponse = await vrfCoordinatorV2.createSubscription();
         const txReceipt = await txResponse.wait(1);
         const eventLog = txReceipt?.logs[0] as EventLog;
         subscriptionId = eventLog.args["subId"];
-        await contract.fundSubscription(subscriptionId, VRF_SUB_FUND_AMOUNT);
+        await vrfCoordinatorV2.fundSubscription(
+            subscriptionId,
+            VRF_SUB_FUND_AMOUNT
+        );
     } else {
         vrfCoordinatorV2Address = networkConfig[chainId].vrfCoordinatorV2;
         subscriptionId = networkConfig[chainId].subscriptionId;
@@ -54,6 +56,18 @@ const deployRaffle: DeployFunction = async function (
         log: true,
         waitConfirmations: 1,
     });
+    if (developmentChains.includes(chainId)) {
+        const vrfCoordinatorV2Mock = await hre.deployments.get(
+            "VRFCoordinatorV2Mock"
+        );
+        vrfCoordinatorV2Address = vrfCoordinatorV2Mock.address;
+        const vrfCoordinatorV2 = await ethers.getContractAt(
+            "VRFCoordinatorV2Mock",
+            vrfCoordinatorV2Mock.address,
+            deployer
+        );
+        await vrfCoordinatorV2.addConsumer(subscriptionId, raffle.address);
+    }
     if (!developmentChains.includes(chainId) && process.env.ETHERSCAN_API_KEY) {
         await verify(raffle.address, args);
     }
