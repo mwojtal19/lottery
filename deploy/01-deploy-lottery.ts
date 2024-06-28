@@ -7,7 +7,7 @@ import verify from "../utils/verify";
 
 const VRF_SUB_FUND_AMOUNT = parseEther("2");
 
-const deployRaffle: DeployFunction = async function (
+const deployLottery: DeployFunction = async function (
     hre: HardhatRuntimeEnvironment
 ) {
     const accounts = await ethers.getSigners();
@@ -50,7 +50,7 @@ const deployRaffle: DeployFunction = async function (
         callbackGasLimit,
         interval,
     ];
-    const raffle = await hre.deployments.deploy("Raffle", {
+    const lottery = await hre.deployments.deploy("Lottery", {
         from: deployer.address,
         args: args,
         log: true,
@@ -66,12 +66,12 @@ const deployRaffle: DeployFunction = async function (
             vrfCoordinatorV2Mock.address,
             deployer
         );
-        await vrfCoordinatorV2.addConsumer(subscriptionId, raffle.address);
+        await vrfCoordinatorV2.addConsumer(subscriptionId, lottery.address);
     }
     if (!developmentChains.includes(chainId) && process.env.ETHERSCAN_API_KEY) {
-        await verify(raffle.address, args);
+        await verify(lottery.address, args);
     }
     hre.deployments.log("---------------------------------");
 };
-export default deployRaffle;
-deployRaffle.tags = ["all", "raffle"];
+export default deployLottery;
+deployLottery.tags = ["all", "lottery"];
